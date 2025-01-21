@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'visits',
+    'commando',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,17 @@ DATABASES = {
     }
 }
 
+DATABASE_URL = config("DATABASE_URL", default=None)
+if DATABASE_URL is not None:
+    import dj_database_url
+    DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=30,
+        conn_health_checks=True,
+        )
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -113,6 +125,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_BASE_DIR = BASE_DIR / 'staticfiles'
+STATIC_BASE_DIR.mkdir(exist_ok=True, parents=True)
+STATICFILES_VENDOR_DIR = STATIC_BASE_DIR / "vendors"
+
+# source(s) for python manage.py collectstatic
+STATICFILES_DIRS = [
+    STATIC_BASE_DIR
+]
+
+# output for python manage.py collectstatic
+STATIC_ROOT = BASE_DIR.parent / "local-cdn"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

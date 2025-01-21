@@ -1,0 +1,11 @@
+{%extends 'base.html' %}
+<hr />
+{% block head_title %}Home - {{block.super}}{% endblock head_title %} 
+
+{% block content %}
+<p>I know</p>
+Page visits: {{ page_visits_count }}
+
+{% include "./snippets/welcome-user-snippets.html" %}
+
+{% endblock content %}

@@ -5,6 +5,25 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com", cast=str)
+EMAIL_PORT = config("EMAIL_PORT", default="587", cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", cast=str, default=None)
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str, default=None)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
+
+ADMIN_USER=config('ADMIN_USERNAME', default="Admin User")
+ADMIN_USER_MAIL=config('ADMIN_USER_MAIL', default=None)
+
+ADMINS=[]
+MANAGERS=ADMINS
+if all([ADMIN_USER, ADMIN_USER_MAIL]):
+    ADMINS += [
+        (ADMIN_USER, ADMIN_USER_MAIL)
+    ]
+    MANAGERS=ADMINS
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -32,18 +51,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    # my apps
     'visits',
     'commando',
+    # third party apps
+    "allauth_ui",
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    "widget_tweaks",
+    "slippers",
+
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -53,7 +83,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / "templates"],
-        'APP_DIRS': True,
+        'APP_DIRS': True, # True to accept library templates
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -66,7 +96,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'zhome.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -108,6 +137,28 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Django AllAuth Config
+LOGIN_REDIRECT="/"
+ACCOUNT_AUTHENTICATION_METHOD ='username_email'
+ACCOUNT_EMAIL_VERIFICATION="mandatory"
+ACCOUNT_EMAIL_REQUIRED=True
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        "VERIFIED_EMAIL": True,
+    }
+
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -136,6 +187,13 @@ STATICFILES_DIRS = [
 
 # output for python manage.py collectstatic
 STATIC_ROOT = BASE_DIR.parent / "local-cdn"
+STORAGES = {
+    # ...
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
